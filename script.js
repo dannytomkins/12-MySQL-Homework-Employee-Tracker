@@ -9,8 +9,8 @@ var connection = mysql.createConnection({
     database: "cmsDB"
 });
 const util = require('util');
-
 const query = util.promisify(connection.query).bind(connection);
+
 connection.connect(function(err) {
     if (err) {
         console.error("error connecting: " + err.stack);
@@ -25,7 +25,7 @@ const employeequestions = [
     {
         type: "list",
         message: "choose the following choices.",
-        choices: ["Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update employee roles"],
+        choices: ["Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Update Employee Manager"],
         name: "selection"
     }
     //View departments, roles, employees
@@ -56,8 +56,11 @@ function start() {
                 case "View Employees":
                     viewEmployees()
                     break
-                case "Update employee roles":
-                    updateEmployeeRoles()
+                case "Update Employee Role":
+                    updateEmployeeRole()
+                    break
+                case "Update Employee Manager":
+                    updateEmployeeManager()
                     break
             }
         })
@@ -137,7 +140,7 @@ async function addEmployee(){
         },
         {
             type: "list",
-            message: "Please select whom is the manager.",
+            message: "Please select the employee's manager.",
             choices: managernames,
             name: "managerList"
         }
@@ -169,7 +172,7 @@ function viewEmployees(){
     })
     
 }
-async function updateEmployeeRoles(){
+async function updateEmployeeRole(){
     const employees = await query("SELECT * FROM employee")
      const employeenames = employees.map(employee => employee.first_name + " " + employee.last_name)
 
@@ -192,6 +195,38 @@ async function updateEmployeeRoles(){
         const titleObject = await roles.find(role => role.title === userinput.titleList)
          const employeeObject = await employees.find(employee => (employee.first_name + " " + employee.last_name) === userinput.employeeList)
         connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [titleObject.id, employeeObject.id], function (error){
+            console.log("updated!")
+            start()
+        })
+    })
+}
+
+//update employee manager
+async function updateEmployeeManager(){
+    const employees = await query("SELECT * FROM employee")
+    const employeenames = employees.map(employee => employee.first_name + " " + employee.last_name)
+
+    const managers = await query("SELECT * FROM employee")
+    const managernames = managers.map(manager => manager.first_name + " " + manager.last_name)
+
+    inquirer.prompt([
+        {
+            type: "list",
+            message: "Which employee would you like to change?",
+            choices: employeenames,
+            name: "employeeList"
+        },
+        {
+            type: "list",
+            message: "Who is the employee's new manager?",
+            choices: managernames,
+            name: "managerList"
+        }
+    ]).then(async function(userinput){
+
+        const managerObject = await managers.find(manager => (manager.first_name + " " + manager.last_name) === userinput.managerList)
+        const employeeObject = await employees.find(employee => (employee.first_name + " " + employee.last_name) === userinput.employeeList)
+        connection.query("UPDATE employee SET manager_id = ? WHERE id = ?", [managerObject.id, employeeObject.id], function (error){
             console.log("updated!")
             start()
         })
