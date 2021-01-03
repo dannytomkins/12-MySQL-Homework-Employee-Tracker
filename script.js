@@ -1,5 +1,6 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
+//rxjs needed for async functions
 const { async } = require("rxjs");
 var connection = mysql.createConnection({
     host: "localhost",
@@ -8,6 +9,7 @@ var connection = mysql.createConnection({
     password: "password",
     database: "cmsDB"
 });
+//util needed for async functions
 const util = require('util');
 const query = util.promisify(connection.query).bind(connection);
 
@@ -21,16 +23,13 @@ connection.connect(function(err) {
     });
 
 const employeequestions = [
-    //Add departments, roles, employees
     {
         type: "list",
         message: "choose the following choices.",
         choices: ["Add Department", "Add Role", "Add Employee", "View Departments", "View Roles", "View Employees", "Update Employee Role", "Update Employee Manager"],
         name: "selection"
     }
-    //View departments, roles, employees
 
-    //Update employee roles
 ]
 
 
